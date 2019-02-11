@@ -9,8 +9,8 @@ use App\LogActivity;
 
 class barcodeController extends Controller
 {
-        public function show(){
-    	return view('show_barcode');
+    public function show(){
+        return view('show_barcode');
     }
     public function print($id){
         $visitors = Visitor::findOrFail($id);
@@ -20,41 +20,38 @@ class barcodeController extends Controller
     }
     public function editvisitor($id){
         $visitors = Visitor::findOrFail($id);
-    
-        return view('editvisitor',['visitors' => $visitors ]);
-  }
-  public function outvisitor($id)
-  {
-    $visitors = Visitor::findOrFail($id);
-    if($visitors) {
-        $visitors->time_out = now();
-        $visitors->save();
-    }
-    \LogActivity::addToLog('Out '.$visitors->name.'('.$id.')');
-    return redirect('/show-barcode-list');
-}
- 
-
-public function show_barcode_list()
-{
         
-    $visitors = Visitor::orderBy('gate_pass_id','asc')->whereNull('time_out')->get();
-    return view('show_barcode_list')->with('visitors', $visitors);
+        return view('editvisitor',['visitors' => $visitors ]);
     }
-
-   
-   
+    public function outvisitor($id)
+    {
+        $visitors = Visitor::findOrFail($id);
+        if($visitors) {
+            $visitors->time_out = now();
+            $visitors->save();
+        }
+        \LogActivity::addToLog('Out '.$visitors->name.'('.$id.')');
+        return redirect('/show-barcode-list');
+    }
+    
+    
+    public function show_barcode_list()
+    {
+        
+        $visitors = Visitor::orderBy('gate_pass_id','asc')->whereNull('time_out')->get();
+        return view('show_barcode_list')->with('visitors', $visitors);
+    }
     public function barcode(Request $request){
-    $this->validate(request(),[
+        $this->validate(request(),[
             'name' => 'required|string|max:255|regex:/^[\pL\s\-]+$/u',
             'contact_person' => 'required|string|max:255|regex:/^[\pL\s\-]+$/u',
             'company' => 'required|string|max:255',
             'gate_pass_id' => 'required|string|numeric',
             'reason' => 'required|string|required',
-    ]    
-    );
-    $gatepass = Visitor::where('gate_pass_id', $request->input('gate_pass_id'))->whereNull('time_out')->get();
-    if($gatepass->isEmpty()){
+            ]    
+        );
+        $gatepass = Visitor::where('gate_pass_id', $request->input('gate_pass_id'))->whereNull('time_out')->get();
+        if($gatepass->isEmpty()){
             $data = new Visitor;
             $data->name = $request->input('name');
             $name_request = $request->input('name');
@@ -66,21 +63,20 @@ public function show_barcode_list()
             $request->session()->flash('status', 'Successfully Added!');
             \LogActivity::addToLog(''.$name_request.' Newly added');
             return redirect('/show-barcode-list');
-    }
-    else{ 
-        $request->session()->flash('status', 'Invalid Gate Pass ID!');
-        return redirect('/barcode');
-    }
+        }
+        else{ 
+            $request->session()->flash('status', 'Invalid Gate Pass!');
+            return redirect('/barcode');
+        }
     }
     public function saveeditvisitor(Request $request, $id){
-
         $this->validate(request(),[
             'name' => 'required|string|max:255|regex:/^[\pL\s\-]+$/u',
             'contact_person' => 'required|string|max:255|regex:/^[\pL\s\-]+$/u',
             'company' => 'required|string|max:255',
             'gate_pass_id' => 'required|string|numeric',
             'reason' => 'required|string|required',
-        ]    
+            ]    
         );
         $gatepass = Visitor::where('gate_pass_id', $request->input('gate_pass_id'))->whereNull('time_out')->where('id', '!=' , $id)->get();
         if($gatepass->isEmpty()){
@@ -89,27 +85,27 @@ public function show_barcode_list()
             $data->fill($input)->save();
             $request->session()->flash('status', 'Successfully Update!');
             \LogActivity::addToLog('Update '.$request->input('name').'('.$id.')');
-              return redirect('/show-barcode-list');
+            return redirect('/destination-list');
         }
         else{
             $request->session()->flash('status', 'Invalid Gate Pass ID!');
             return redirect("/edit-visitor/$id");
-        
+            
         }
-     }
-     public function logActivity()
+    }
+    public function logActivity()
     {
         $logs = LogActivity::latest()
         ->leftJoin ('users','log_activities.user_id','=','users.id')
         ->select('users.name','log_activities.*')
         ->get();
-
-         return view('logActivity',compact('logs'));    
+        
+        return view('logActivity',compact('logs'));    
     }
     public function visitors_history()
     {
         $logs = Visitor::latest()->whereNotNull('time_out')->get();
-
-         return view('visitors_history',compact('logs'));    
+        
+        return view('visitors_history',compact('logs'));    
     }
 }

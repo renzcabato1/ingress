@@ -23,13 +23,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        
         $visitors = Visitor::orderBy('gate_pass_id','asc')->whereNull('time_out')->get();
         return view('show_barcode_list')->with('visitors', $visitors);
     }
-   
-
-
     /**
      * Show the application dashboard.
      *

@@ -13,7 +13,6 @@ Route::get('/visitors-history', 'barcodeController@visitors_history');
 Route::get('/change-password', 'accountController@change_password');
 Route::post('/change-password', 'accountController@save_change_password');
 
-
 Route::group( ['middleware' => 'admin'], function()
 {
 Route::get('/history-log', 'barcodeController@logActivity');
